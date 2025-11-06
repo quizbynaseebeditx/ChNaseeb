@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz by Naseeb</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .container { max-width: 800px; width: 90%; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .page { padding: 40px 30px; text-align: center; display: none; }
+        .page.active { display: block; }
+        h1 { font-size: 2.5em; color: #4a5568; margin-bottom: 20px; }
+        h2 { font-size: 2em; color: #4a5568; margin-bottom: 30px; }
+        #home h1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
+        .btn-start { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 20px 40px; font-size: 1.5em; border-radius: 50px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+        .btn-start:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4); }
+        .btn-restart { background: #48bb78; color: white; border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 30px; cursor: pointer; transition: all 0.3s; margin-top: 20px; }
+        .btn-restart:hover { background: #38a169; transform: scale(1.05); }
+        #timer { font-size: 2.5em; font-weight: bold; color: #ed8936; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        #progress { font-size: 1.5em; color: #4a5568; margin-bottom: 30px; font-weight: bold; }
+        #question { font-size: 2.2em; margin: 40px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; background: #f7fafc; border-radius: 15px; padding: 30px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
+        .options { display: flex; flex-direction: column; gap: 15px; margin: 40px 0; }
+        .option { background: white; border: 3px solid #e2e8f0; padding: 25px; font-size: 1.4em; border-radius: 15px; cursor: pointer; transition: all 0.3s; font-weight: 500; position: relative; overflow: hidden; }
+        .option:hover { border-color: #667eea; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.2); }
+        .option.selected { background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border-color: #38a169; transform: scale(1.02); }
+        .option::before { content: attr(data-label); position: absolute; left: 15px; font-weight: bold; color: #667eea; }
+        .option.selected::before { color: white; }
+        .btn-row { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
+        .btn-cont, .btn-submit { padding: 18px 35px; font-size: 1.3em; border: none; border-radius: 30px; cursor: pointer; transition: all 0.3s; font-weight: bold; }
+        .btn-cont { background: #48bb78; color: white; min-width: 150px; }
+        .btn-cont:hover:not(:disabled) { background: #38a169; transform: scale(1.05); }
+        .btn-cont:disabled { background: #a0aec0; cursor: not-allowed; transform: none; }
+        .btn-submit { background: #f56565; color: white; }
+        .btn-submit:hover { background: #e53e3e; transform: scale(1.05); }
+        .result-item { font-size: 1.4em; margin: 20px 0; padding: 15px; background: #f7fafc; border-radius: 10px; border-left: 5px solid #667eea; }
+        .result-item span { font-size: 1.6em; font-weight: bold; color: #2d3748; }
+        @media (max-width: 600px) { .container { width: 95%; margin: 20px; } h1 { font-size: 2em; } #question { font-size: 1.8em; padding: 20px; } .option { font-size: 1.2em; padding: 20px; } .btn-row { flex-direction: column; align-items: center; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Page -->
+        <div id="home" class="page active">
+            <h1>Welcome to Math Quiz by Naseeb</h1>
+            <p style="font-size: 1.2em; margin-bottom: 30px; color: #666;">Test your Math skills with 30 random questions!</p>
+            <button class="btn-start" id="startBtn">Start Math Quiz</button>
+        </div>
+
+        <!-- Quiz Page -->
+        <div id="quiz" class="page">
+            <div id="timer">Time: 00:00</div>
+            <div id="progress">Question <span id="qnum">1</span> / 30</div>
+            <div id="question">Get ready...</div>
+            <div class="options">
+                <button class="option" id="b1" data-label="A)"></button>
+                <button class="option" id="b2" data-label="B)"></button>
+                <button class="option" id="b3" data-label="C)"></button>
+                <button class="option" id="b4" data-label="D)"></button>
+            </div>
+            <div class="btn-row">
+                <button id="continue" class="btn-cont" disabled>Continue</button>
+                <button class="btn-submit" id="submitBtn">Submit Quiz</button>
+            </div>
+        </div>
+
+        <!-- Result Page -->
+        <div id="result" class="page">
+            <h2>Quiz Completed!</h2>
+            <div class="result-item">Total Questions: <span id="total">30</span></div>
+            <div class="result-item">Attempted: <span id="att">0</span></div>
+            <div class="result-item">Correct: <span id="cor">0</span></div>
+            <div class="result-item">Wrong: <span id="wrg">0</span></div>
+            <div class="result-item">Time Taken: <span id="timeRes">00:00</span></div>
+            <p style="margin-top: 30px; font-size: 1.1em; color: #666;">Great job! Unattempted questions are counted as wrong.</p>
+            <button class="btn-restart" id="restartBtn">Restart Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // All 200 Math Questions (A, B, C, D + Correct Index)
+        const allQuestions = [
+            { q: "The perimeter of a rectangle is 36 cm. If the length is 10 cm, what is the width?", opts: ["A) 7 cm", "B) 8 cm", "C) 9 cm", "D) 10 cm"], correct: 1 },
+            { q: "A shopkeeper sold a shirt for Rs. 600 at a profit of Rs. 100. What was the cost price?", opts: ["A) 450", "B) 500", "C) 550", "D) 520"], correct: 1 },
+            { q: "The LCM of 12 and 18 is:", opts: ["A) 24", "B) 30", "C) 36", "D) 42"], correct: 2 },
+            { q: "A triangle has angles 40°, 60°, and x°. Find x.", opts: ["A) 70°", "B) 75°", "C) 80°", "D) 85°"], correct: 2 },
+            { q: "The mean of 8, 10, 12, 14 is:", opts: ["A) 10", "B) 11", "C) 11.5", "D) 12"], correct: 1 },
+            { q: "A die is rolled. Probability of getting a number greater than 4 is:", opts: ["A) 1/6", "B) 1/2", "C) 1/3", "D) 5/6"], correct: 2 },
+            { q: "The perimeter of a square is 28 cm. Its area is:", opts: ["A) 36 cm²", "B) 49 cm²", "C) 64 cm²", "D) 81 cm²"], correct: 1 },
+            { q: "If x − 7 = 12, then x = ?", opts: ["A) 16", "B) 19", "C) 20", "D) 21"], correct: 1 },
+            { q: "Which of these is a multiple of both 4 and 6?", opts: ["A) 16", "B) 18", "C) 20", "D) 24"], correct: 3 },
+            { q: "A car travels 120 km in 2 hours. What is its speed?", opts: ["A) 50 km/h", "B) 60 km/h", "C) 65 km/h", "D) 70 km/h"], correct: 1 },
+            { q: "If radius = 7 cm, circumference = ? (π = 22/7)", opts: ["A) 40", "B) 42", "C) 44", "D) 46"], correct: 2 },
+            { q: "Simplify: 4x − 2 + 3x + 5", opts: ["A) 6x + 6", "B) 7x + 3", "C) 8x + 2", "D) 7x − 2"], correct: 1 },
+            { q: "Which is a prime number?", opts: ["A) 27", "B) 29", "C) 33", "D) 35"], correct: 1 },
+            { q: "Area of triangle with base 12 and height 5 is:", opts: ["A) 25", "B) 30", "C) 35", "D) 40"], correct: 1 },
+            { q: "If 2x = 18, then x = ?", opts: ["A) 7", "B) 8", "C) 9", "D) 10"], correct: 2 },
+            { q: "Median of 5, 7, 9, 11, 13 = ?", opts: ["A) 7", "B) 9", "C) 11", "D) 10"], correct: 1 },
+            { q: "Which fraction is equal to 0.75?", opts: ["A) 2/5", "B) 3/4", "C) 4/5", "D) 7/10"], correct: 1 },
+            { q: "A man spends Rs. 240 which is 40% of his salary. His salary is:", opts: ["A) 500", "B) 600", "C) 650", "D) 700"], correct: 1 },
+            { q: "If a = 5 and b = 3, the value of a² − b² is:", opts: ["A) 14", "B) 16", "C) 24", "D) 40"], correct: 1 },
+            { q: "Probability of picking a king from a full deck (52 cards) = ?", opts: ["A) 1/26", "B) 1/13", "C) 1/12", "D) 1/10"], correct: 1 },
+            { q: "Area of circle with radius 3 cm is (π = 3.14):", opts: ["A) 26.5", "B) 28.26", "C) 30", "D) 31"], correct: 1 },
+            { q: "Solve: x / 4 = 9", opts: ["A) 32", "B) 34", "C) 36", "D) 38"], correct: 2 },
+            { q: "Volume of a cube with side 6 cm = ?", opts: ["A) 196", "B) 216", "C) 230", "D) 240"], correct: 1 },
+            { q: "Which is an equilateral triangle?", opts: ["A) 40°, 50°, 90°", "B) 30°, 60°, 90°", "C) 60°, 60°, 60°", "D) 45°, 45°, 90°"], correct: 2 },
+            { q: "Which is irrational?", opts: ["A) √16", "B) √3", "C) √25", "D) √49"], correct: 1 },
+            { q: "The mode of 2, 3, 3, 4, 5, 5, 5, 6 is:", opts: ["A) 3", "B) 5", "C) 6", "D) 7"], correct: 1 },
+            { q: "If 5 pens cost Rs. 50, then 12 pens cost:", opts: ["A) 110", "B) 120", "C) 130", "D) 140"], correct: 1 },
+            { q: "Solve: 7x − 5 = 16", opts: ["A) 2", "B) 3", "C) 4", "D) 5"], correct: 1 },
+            { q: "Which is divisible by 9?", opts: ["A) 32", "B) 42", "C) 45", "D) 52"], correct: 2 },
+            { q: "If a triangle has sides 6, 8, 10, then it is:", opts: ["A) Isosceles", "B) Right-angled", "C) Equilateral", "D) Scalene"], correct: 1 },
+            { q: "Which point lies on y = 2x?", opts: ["A) (2, 3)", "B) (3, 6)", "C) (1, 3)", "D) (2, 5)"], correct: 1 },
+            { q: "Find HCF of 18 and 24.", opts: ["A) 32", "B) 34", "C) 6", "D) 12"], correct: 2 },
+            { q: "A shopkeeper marks Rs. 500 and gives 10% discount. Sale price = ?", opts: ["A) 440", "B) 445", "C) 450", "D) 460"], correct: 2 },
+            { q: "The square root of 196 = ?", opts: ["A) 12", "B) 13", "C) 14", "D) 15"], correct: 2 },
+            { q: "Simplify: (1/2) + (3/4)", opts: ["A) 1.1", "B) 1.1", "C) 1.25", "D) 1.3"], correct: 2 },
+            { q: "Which is the smallest prime?", opts: ["A) 0", "B) 1", "C) 2", "D) 3"], correct: 2 },
+            { q: "If perimeter of a square is 24 cm, each side = ?", opts: ["A) 5 cm", "B) 6 cm", "C) 7 cm", "D) 8 cm"], correct: 1 },
+            { q: "The probability of tossing a head with a fair coin = ?", opts: ["A) 1/4", "B) 1/2", "C) 3/4", "D) 1"], correct: 1 },
+            { q: "The value of 2³ × 3² = ?", opts: ["A) 18", "B) 24", "C) 72", "D) 81"], correct: 2 },
+            { q: "The sum of interior angles of a quadrilateral = ?", opts: ["A) 270°", "B) 360°", "C) 180°", "D) 300°"], correct: 1 },
+            { q: "Which is a factorization of x² + 7x + 12?", opts: ["A) (x + 2)(x + 4)", "B) (x + 3)(x + 4)", "C) (x + 6)(x + 2)", "D) (x + 5)(x + 2)"], correct: 1 },
+            { q: "If x² = 64, then x = ?", opts: ["A) ±6", "B) ±8", "C) ±10", "D) ±12"], correct: 1 },
+            { q: "Convert 0.25 into a fraction.", opts: ["A) 1/2", "B) 1/4", "C) 1/5", "D) 3/10"], correct: 1 },
+            { q: "Which is not a polygon?", opts: ["A) Square", "B) Triangle", "C) Circle", "D) Pentagon"], correct: 2 },
+            { q: "The diagonals of a square are always:", opts: ["A) Unequal", "B) Equal", "C) Parallel", "D) Same as sides"], correct: 1 },
+            { q: "Find the mean of 2, 4, 6, 8.", opts: ["A) 3", "B) 4", "C) 5", "D) 6"], correct: 2 },
+            { q: "Solve: 3x + 7 = 16", opts: ["A) 2", "B) 3", "C) 4", "D) 5"], correct: 1 },
+            { q: "The perimeter of a triangle with sides 4, 5, 6 is:", opts: ["A) 12", "B) 13", "C) 15", "D) 16"], correct: 2 },
+            { q: "Which is a square number?", opts: ["A) 18", "B) 20", "C) 25", "D) 27"], correct: 2 },
+            { q: "Area of a parallelogram with base 10 and height 6 = ?", opts: ["A) 50", "B) 60", "C) 65", "D) 70"], correct: 1 },
+            { q: "Which is equivalent to 3/5?", opts: ["A) 6/12", "B) 7/12", "C) 9/15", "D) 8/14"], correct: 2 },
+            { q: "If diameter of a circle is 14, radius = ?", opts: ["A) 6", "B) 7", "C) 8", "D) 9"], correct: 1 },
+            { q: "A bag has 2 red and 3 blue balls. Probability of red = ?", opts: ["A) 1/3", "B) 2/5", "C) 3/5", "D) 1/2"], correct: 1 },
+            { q: "A cube has edge 4 cm. Volume = ?", opts: ["A) 48", "B) 60", "C) 64", "D) 72"], correct: 2 },
+            { q: "Which is equivalent to 2/8?", opts: ["A) 1/8", "B) 1/2", "C) 1/4", "D) 1/6"], correct: 2 },
+            { q: "Which is the next prime after 31?", opts: ["A) 33", "B) 35", "C) 37", "D) 39"], correct: 2 },
+            { q: "Area of rectangle 15 × 8 = ?", opts: ["A) 110", "B) 115", "C) 120", "D) 125"], correct: 2 },
+            { q: "40% of 250 = ?", opts: ["A) 90", "B) 100", "C) 110", "D) 120"], correct: 1 },
+            { q: "Simplify: (1/3) ÷ (2/3)", opts: ["A) 1/2", "B) 2/3", "C) 3/2", "D) 1/3"], correct: 0 },
+            { q: "The cube root of 64 is:", opts: ["A) 2", "B) 3", "C) 4", "D) 5"], correct: 2 },
+            { q: "The largest two-digit number is:", opts: ["A) 90", "B) 99", "C) 100", "D) 98"], correct: 1 },
+            { q: "A 3D shape with a circular base and one curved surface is:", opts: ["A) Sphere", "B) Cylinder", "C) Cone", "D) Cube"], correct: 2 },
+            { q: "The perimeter of a triangle with sides 3 cm, 4 cm, and 5 cm is:", opts: ["A) 10 cm", "B) 12 cm", "C) 11 cm", "D) 9 cm"], correct: 1 },
+            { q: "Which of these is an irrational number?", opts: ["A) 4", "B) 5/2", "C) 0.25", "D) √2"], correct: 3 },
+            { q: "The distance between two points is called:", opts: ["A) Radius", "B) Length", "C) Width", "D) Height"], correct: 1 },
+            { q: "Which of the following is not a polygon?", opts: ["A) Square", "B) Triangle", "C) Circle", "D) Pentagon"], correct: 2 },
+            { q: "The product of two odd numbers is always:", opts: ["A) Even", "B) Odd", "C) Prime", "D) Composite"], correct: 1 },
+            { q: "How many degrees are there in a complete turn?", opts: ["A) 90°", "B) 180°", "C) 360°", "D) 270°"], correct: 2 },
+            { q: "Which of the following is a proper fraction?", opts: ["A) 5/2", "B) 3/4", "C) 4/4", "D) 7/3"], correct: 1 },
+            { q: "The middle value in a set of ordered numbers is called:", opts: ["A) Mean", "B) Mode", "C) Median", "D) Range"], correct: 2 },
+            { q: "The diagonals of a square are:", opts: ["A) Unequal", "B) Equal", "C) Curved", "D) Parallel"], correct: 1 },
+            { q: "Which is the largest fraction?", opts: ["A) 1/3", "B) 2/5", "C) 3/4", "D) 4/5"], correct: 2 },
+            { q: "The unit of mass in the metric system is:", opts: ["A) Metre", "B) Kilogram", "C) Litre", "D) Newton"], correct: 1 },
+            { q: "A polygon with 8 sides is called:", opts: ["A) Septagon", "B) Octagon", "C) Hexagon", "D) Nonagon"], correct: 1 },
+            { q: "Which property is used in: (a + b) + c = a + (b + c)?", opts: ["A) Commutative", "B) Associative", "C) Distributive", "D) Identity"], correct: 1 },
+            { q: "Which number is a factor of both 18 and 24?", opts: ["A) 6", "B) 5", "C) 8", "D) 7"], correct: 0 },
+            { q: "An angle exactly equal to 90° is called:", opts: ["A) Acute angle", "B) Right angle", "C) Obtuse angle", "D) Reflex angle"], correct: 1 },
+            { q: "The area of a square with side 5 cm is:", opts: ["A) 10 cm²", "B) 25 cm²", "C) 20 cm²", "D) 15 cm²"], correct: 1 },
+            { q: "Which of these is a composite number?", opts: ["A) 13", "B) 17", "C) 15", "D) 19"], correct: 2 },
+            { q: "The largest 3-digit number is:", opts: ["A) 100", "B) 1000", "C) 999", "D) 9999"], correct: 2 },
+            { q: "The smallest 2-digit number is:", opts: ["A) 0", "B) 11", "C) 10", "D) 12"], correct: 2 },
+            { q: "Which term means “same shape but different size”?", opts: ["A) Equal", "B) Similar", "C) Congruent", "D) Identical"], correct: 1 },
+            { q: "The product of a number and its reciprocal is always:", opts: ["A) 0", "B) 2", "C) 1", "D) Infinity"], correct: 2 },
+            { q: "A quadrilateral with two pairs of equal adjacent sides is called:", opts: ["A) Rectangle", "B) Kite", "C) Trapezium", "D) Rhombus"], correct: 1 },
+            { q: "Which of these is not an integer?", opts: ["A) -5", "B) 0", "C) 1/2", "D) 10"], correct: 2 },
+            { q: "Which of the following represents an odd number?", opts: ["A) 24", "B) 31", "C) 40", "D) 20"], correct: 1 },
+            { q: "A prism has how many bases?", opts: ["A) 1", "B) 2", "C) 3", "D) 4"], correct: 1 },
+            { q: "Which of these is the smallest?", opts: ["A) 0.5", "B) 0.75", "C) 0.25", "D) 1"], correct: 2 },
+            { q: "The sum of all sides of a polygon is called:", opts: ["A) Area", "B) Perimeter", "C) Volume", "D) Surface area"], correct: 1 },
+            { q: "How many degrees are there in a right angle?", opts: ["A) 45°", "B) 120°", "C) 90°", "D) 180°"], correct: 2 },
+            { q: "Which of the following is a natural number?", opts: ["A) 0", "B) -1", "C) 5", "D) -3"], correct: 2 },
+            { q: "The square root of 81 is:", opts: ["A) 8", "B) 9", "C) 10", "D) 11"], correct: 1 },
+            { q: "A figure with three sides is called:", opts: ["A) Triangle", "B) Rectangle", "C) Square", "D) Circle"], correct: 0 },
+            { q: "Which number is a multiple of both 4 and 6?", opts: ["A) 8", "B) 12", "C) 24", "D) 16"], correct: 2 },
+            { q: "Which shape has all sides equal and all angles 60°?", opts: ["A) Square", "B) Equilateral triangle", "C) Rectangle", "D) Rhombus"], correct: 1 },
+            { q: "Which of the following is the largest?", opts: ["A) 2/5", "B) 3/5", "C) 1/5", "D) 4/10"], correct: 1 },
+            { q: "Which is the correct symbol for “is less than”?", opts: ["A) =", "B) >", "C) <", "D) ≥"], correct: 2 },
+            { q: "A straight line has how many endpoints?", opts: ["A) 1", "B) 2", "C) None", "D) Infinite"], correct: 2 },
+            { q: "Which is an even prime number?", opts: ["A) 1", "B) 3", "C) 2", "D) 5"], correct: 2 },
+            { q: "The point where two lines meet is called:", opts: ["A) Midpoint", "B) Vertex", "C) Centre", "D) Edge"], correct: 1 },
+            { q: "Which number is not divisible by 5?", opts: ["A) 10", "B) 25", "C) 45", "D) 42"], correct: 3 },
+            { q: "A figure with six faces, all of which are squares, is a:", opts: ["A) Sphere", "B) Cone", "C) Cylinder", "D) Cube"], correct: 3 },
+            { q: "The total number of sides in two pentagons is:", opts: ["A) 8", "B) 9", "C) 10", "D) 12"], correct: 2 },
+            { q: "The longest chord of a circle is the:", opts: ["A) Radius", "B) Diameter", "C) Circumference", "D) Arc"], correct: 1 },
+            { q: "Which is a negative integer?", opts: ["A) 0", "B) -5", "C) 2", "D) 1"], correct: 1 },
+            { q: "Which number is a common multiple of 3 and 4?", opts: ["A) 9", "B) 12", "C) 14", "D) 20"], correct: 1 },
+            { q: "A quadrilateral with opposite sides parallel is a:", opts: ["A) Trapezium", "B) Parallelogram", "C) Kite", "D) Pentagon"], correct: 1 },
+            { q: "Which of the following is an acute angle?", opts: ["A) 95°", "B) 90°", "C) 60°", "D) 120°"], correct: 2 },
+            { q: "A 3D shape with two circular faces and one curved surface is:", opts: ["A) Cone", "B) Cylinder", "C) Sphere", "D) Cube"], correct: 1 },
+            { q: "Which is the largest 1-digit number?", opts: ["A) 8", "B) 9", "C) 7", "D) 6"], correct: 1 },
+            { q: "A number multiplied by itself is called its:", opts: ["A) Square", "B) Cube", "C) Factor", "D) Multiple"], correct: 0 },
+            { q: "Which of these is not a polygon?", opts: ["A) Square", "B) Hexagon", "C) Oval", "D) Triangle"], correct: 2 },
+            { q: "The number which is added to itself gives double the number. This is called:", opts: ["A) Multiplication", "B) Addition", "C) Subtraction", "D) Division"], correct: 1 },
+            { q: "Which fraction is greater?", opts: ["A) 2/3", "B) 3/4", "C) 4/5", "D) 1/2"], correct: 1 },
+            { q: "The perimeter of a rectangle with length 6 cm and width 4 cm is:", opts: ["A) 18 cm", "B) 20 cm", "C) 22 cm", "D) 16 cm"], correct: 1 },
+            { q: "Which is the correct Roman numeral for 50?", opts: ["A) V", "B) X", "C) L", "D) C"], correct: 2 },
+            { q: "The face of a dice is in the shape of a:", opts: ["A) Triangle", "B) Rectangle", "C) Square", "D) Circle"], correct: 2 },
+            { q: "The sum of 90° and 90° is:", opts: ["A) 100°", "B) 180°", "C) 270°", "D) 360°"], correct: 1 },
+            { q: "Which number is a prime number?", opts: ["A) 4", "B) 6", "C) 8", "D) 7"], correct: 3 },
+            { q: "A set of points all at the same distance from a fixed point is a:", opts: ["A) Square", "B) Circle", "C) Triangle", "D) Polygon"], correct: 1 },
+            { q: "Which of the following is not a perfect square?", opts: ["A) 49", "B) 64", "C) 50", "D) 81"], correct: 2 },
+            { q: "The sum of the angles in a pentagon is:", opts: ["A) 360°", "B) 540°", "C) 720°", "D) 900°"], correct: 1 },
+            { q: "Which property is used in 5 × (4 + 2) = (5 × 4) + (5 × 2)?", opts: ["A) Commutative", "B) Distributive", "C) Associative", "D) Identity"], correct: 1 },
+            { q: "A triangle with two equal sides is called:", opts: ["A) Scalene triangle", "B) Isosceles triangle", "C) Equilateral triangle", "D) Right triangle"], correct: 1 },
+            { q: "Which of the following is a prime factor of 21?", opts: ["A) 7", "B) 9", "C) 4", "D) 8"], correct: 0 },
+            { q: "Which number is both a square and a cube?", opts: ["A) 64", "B) 36", "C) 49", "D) 81"], correct: 0 },
+            { q: "The place value of 4 in 4,528 is:", opts: ["A) 40", "B) 400", "C) 4000", "D) 4"], correct: 2 },
+            { q: "The result of dividing one number by another is called:", opts: ["A) Remainder", "B) Quotient", "C) Product", "D) Factor"], correct: 1 },
+            { q: "The line segment joining the centre of a circle to any point on the circle is the:", opts: ["A) Diameter", "B) Radius", "C) Chord", "D) Tangent"], correct: 1 },
+            { q: "Which of these is the greatest?", opts: ["A) 0.25", "B) 0.75", "C) 1.0", "D) 0.50"], correct: 2 },
+            { q: "A triangle with all unequal sides is called:", opts: ["A) Isosceles", "B) Scalene", "C) Equilateral", "D) Right"], correct: 1 },
+            { q: "Which is the Roman numeral for 100?", opts: ["A) L", "B) C", "C) D", "D) M"], correct: 1 },
+            { q: "A solid figure with no faces, edges, or vertices is:", opts: ["A) Cube", "B) Cylinder", "C) Cone", "D) Sphere"], correct: 3 },
+            { q: "Which term describes a number that can be written as a fraction?", opts: ["A) Irrational", "B) Rational", "C) Prime", "D) Composite"], correct: 1 },
+            { q: "The sum of the digits in 245 is:", opts: ["A) 11", "B) 12", "C) 13", "D) 10"], correct: 0 },
+            { q: "Which shape has two pairs of parallel sides and all sides equal?", opts: ["A) Rectangle", "B) Rhombus", "C) Trapezium", "D) Kite"], correct: 1 },
+            { q: "The perimeter of a square with side 7 cm is:", opts: ["A) 28 cm", "B) 21 cm", "C) 14 cm", "D) 35 cm"], correct: 0 },
+            { q: "Which is the smallest prime number greater than 10?", opts: ["A) 11", "B) 13", "C) 15", "D) 17"], correct: 0 },
+            { q: "How many edges does a cube have?", opts: ["A) 8", "B) 12", "C) 6", "D) 10"], correct: 1 },
+            { q: "Which is the reciprocal of 2/5?", opts: ["A) 5/2", "B) 5/2", "C) 2/5", "D) 1/5"], correct: 1 },
+            { q: "The sum of angles in a hexagon is:", opts: ["A) 360°", "B) 720°", "C) 540°", "D) 900°"], correct: 1 },
+            { q: "The largest factor of a number is always:", opts: ["A) 0", "B) The number itself", "C) 1", "D) Half the number"], correct: 1 },
+            { q: "Which number is an odd multiple of 5?", opts: ["A) 10", "B) 15", "C) 20", "D) 25"], correct: 1 },
+            { q: "Which is the largest 4-digit number?", opts: ["A) 999", "B) 9999", "C) 1000", "D) 9000"], correct: 1 },
+            { q: "A number that can only be divided by 1 and itself is:", opts: ["A) Composite", "B) Prime", "C) Even", "D) Odd"], correct: 1 },
+            { q: "The sum of 0.4 and 0.6 is:", opts: ["A) 0.9", "B) 1.0", "C) 1.1", "D) 0.8"], correct: 1 },
+            { q: "Which shape has exactly four sides?", opts: ["A) Pentagon", "B) Quadrilateral", "C) Hexagon", "D) Octagon"], correct: 1 },
+            { q: "Which is the correct Roman numeral for 500?", opts: ["A) L", "B) C", "C) D", "D) M"], correct: 2 },
+            { q: "A polygon with 10 sides is called:", opts: ["A) Nonagon", "B) Decagon", "C) Octagon", "D) Heptagon"], correct: 1 },
+            { q: "The smallest factor of any number is always:", opts: ["A) 0", "B) 1", "C) The number itself", "D) Half the number"], correct: 1 },
+            { q: "Which of these is a mixed number?", opts: ["A) 5/3", "B) 2 ½", "C) ¼", "D) 3/5"], correct: 1 },
+            { q: "The result of multiplying two negative numbers is:", opts: ["A) Negative", "B) Positive", "C) Zero", "D) Even"], correct: 1 },
+            { q: "Which number is a perfect cube?", opts: ["A) 8", "B) 27", "C) 12", "D) 5"], correct: 1 },
+            { q: "The perimeter of an equilateral triangle with side 6 cm is:", opts: ["A) 12 cm", "B) 18 cm", "C) 24 cm", "D) 30 cm"], correct: 1 },
+            { q: "Which number is divisible by 9?", opts: ["A) 45", "B) 32", "C) 55", "D) 45"], correct: 3 },
+            { q: "The value of 10² is:", opts: ["A) 10", "B) 32", "C) 100", "D) 122"], correct: 2 },
+            { q: "The largest factor of 20 is:", opts: ["A) 10", "B) 20", "C) 15", "D) 5"], correct: 1 },
+            { q: "The number of sides in a nonagon is:", opts: ["A) 8", "B) 7", "C) 9", "D) 10"], correct: 2 },
+            { q: "Which of the following is an odd prime number?", opts: ["A) 19", "B) 21", "C) 25", "D) 27"], correct: 0 },
+            { q: "A number ending in zero is always divisible by:", opts: ["A) 2", "B) 5", "C) 10", "D) 20"], correct: 2 },
+            { q: "The square of 12 is:", opts: ["A) 122", "B) 112", "C) 144", "D) 124"], correct: 2 },
+            { q: "A line segment has how many endpoints?", opts: ["A) 2", "B) 1", "C) None", "D) Infinite"], correct: 0 },
+            { q: "Which fraction is equal to 0.5?", opts: ["A) 1/2", "B) 2/3", "C) 3/4", "D) 1/3"], correct: 0 },
+            { q: "The sum of three angles of a triangle is always:", opts: ["A) 90°", "B) 270°", "C) 180°", "D) 360°"], correct: 2 },
+            { q: "Which number is between 0.7 and 0.9?", opts: ["A) 0.8", "B) 0.6", "C) 0.5", "D) 1.0"], correct: 0 },
+            { q: "A rectangle with length 5 cm and width 3 cm has area:", opts: ["A) 15 cm²", "B) 8 cm²", "C) 10 cm²", "D) 12 cm²"], correct: 0 },
+            { q: "Which of these is a prime factor of 15?", opts: ["A) 4", "B) 5", "C) 9", "D) 10"], correct: 1 },
+            { q: "How many hours are there in two days?", opts: ["A) 24", "B) 12", "C) 48", "D) 36"], correct: 2 },
+            { q: "The Roman numeral for 40 is:", opts: ["A) L", "B) X", "C) XL", "D) LX"], correct: 2 },
+            { q: "Which is the largest 2-digit prime number?", opts: ["A) 89", "B) 97", "C) 91", "D) 99"], correct: 1 },
+            { q: "The smallest 3-digit number is:", opts: ["A) 101", "B) 999", "C) 100", "D) 110"], correct: 2 },
+            { q: "Which is the reciprocal of 3?", opts: ["A) 1/3", "B) 3/1", "C) 3/3", "D) 1/2"], correct: 0 },
+            { q: "A heptagon has how many sides?", opts: ["A) 7", "B) 6", "C) 8", "D) 9"], correct: 0 },
+            { q: "The sum of 0.25 and 0.75 is:", opts: ["A) 0.9", "B) 1.0", "C) 1.1", "D) 0.8"], correct: 1 },
+            { q: "Which of the following is an even number?", opts: ["A) 13", "B) 28", "C) 17", "D) 15"], correct: 1 },
+            { q: "The largest factor of 15 is:", opts: ["A) 5", "B) 15", "C) 3", "D) 10"], correct: 1 },
+            { q: "Which number is a multiple of both 5 and 7?", opts: ["A) 25", "B) 35", "C) 35", "D) 30"], correct: 2 },
+            { q: "The sum of angles in a quadrilateral is:", opts: ["A) 360°", "B) 270°", "C) 180°", "D) 540°"], correct: 0 },
+            { q: "Which number is greater?", opts: ["A) 0.75", "B) 0.7", "C) 0.8", "D) 0.79"], correct: 2 },
+            { q: "A 3D shape with all faces rectangles is:", opts: ["A) Cube", "B) Cuboid", "C) Cylinder", "D) Cone"], correct: 1 },
+            { q: "Which is the smallest prime number greater than 20?", opts: ["A) 23", "B) 21", "C) 25", "D) 27"], correct: 0 },
+            { q: "The perimeter of a rectangle is 2 × (length + ____).", opts: ["A) Side", "B) Width", "C) Area", "D) Height"], correct: 1 },
+            { q: "Which fraction is the smallest?", opts: ["A) 1/3", "B) 1/4", "C) 1/2", "D) 2/3"], correct: 1 },
+            { q: "The value of 5³ is:", opts: ["A) 10", "B) 15", "C) 125", "D) 25"], correct: 2 },
+            { q: "Which number is divisible by both 2 and 9?", opts: ["A) 12", "B) 20", "C) 18", "D) 15"], correct: 2 },
+            { q: "A regular polygon with all sides and angles equal is called:", opts: ["A) Irregular polygon", "B) Regular polygon", "C) Scalene polygon", "D) Similar polygon"], correct: 1 },
+            { q: "Which is the largest unit of length?", opts: ["A) Metre", "B) Centimetre", "C) Kilometre", "D) Millimetre"], correct: 2 },
+            { q: "The number that is neither positive nor negative is:", opts: ["A) 1", "B) 0", "C) -1", "D) -3"], correct: 1 },
+            { q: "Which of the following is an odd multiple of 3?", opts: ["A) 6", "B) 12", "C) 15", "D) 18"], correct: 2 },
+            { q: "Which number is a factor of both 25 and 35?", opts: ["A) 10", "B) 5", "C) 15", "D) 20"], correct: 1 },
+            { q: "The decimal form of 1/5 is:", opts: ["A) 0.15", "B) 0.2", "C) 0.25", "D) 0.5"], correct: 1 },
+            { q: "A triangle with one obtuse angle is called:", opts: ["A) Acute triangle", "B) Right triangle", "C) Obtuse triangle", "D) Scalene triangle"], correct: 2 },
+            { q: "Which is the next prime number after 29?", opts: ["A) 30", "B) 31", "C) 31", "D) 33"], correct: 2 },
+            { q: "The product of 10 and 0.1 is:", opts: ["A) 10", "B) 0.01", "C) 1.0", "D) 0.5"], correct: 2 },
+            { q: "Which 3D shape has only one face?", opts: ["A) Cube", "B) Sphere", "C) Cone", "D) Cylinder"], correct: 1 },
+            { q: "The sum of the first two prime numbers is:", opts: ["A) 3", "B) 5", "C) 4", "D) 6"], correct: 1 },
+            { q: "Which number is an even factor of 36?", opts: ["A) 5", "B) 6", "C) 9", "D) 15"], correct: 1 },
+            { q: "Which is the largest among 0.5, 0.55, 0.6, and 0.65?", opts: ["A) 0.6", "B) 0.55", "C) 0.65", "D) 0.5"], correct: 2 },
+            { q: "A 3D shape with no edges but one curved surface is:", opts: ["A) Cube", "B) Sphere", "C) Cylinder", "D) Cone"], correct: 1 },
+            { q: "The value of 7 × 0 is:", opts: ["A) 7", "B) 1", "C) 0", "D) 70"], correct: 2 }
+        ];
+
+        let questions = [];
+        let userAnswers = [];
+        let currentQuestion = 0;
+        let startTime = 0;
+        let timerInterval = null;
+        let selectedOption = -1;
+
+        const homePage = document.getElementById('home');
+        const quizPage = document.getElementById('quiz');
+        const resultPage = document.getElementById('result');
+        const startBtn = document.getElementById('startBtn');
+        const continueBtn = document.getElementById('continue');
+        const submitBtn = document.getElementById('submitBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        startBtn.addEventListener('click', startQuiz);
+
+        function startQuiz() {
+            const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
+            questions = shuffled.slice(0, 30);
+            userAnswers = new Array(30).fill(null);
+            currentQuestion = 0;
+            selectedOption = -1;
+            startTime = Date.now();
+
+            homePage.classList.remove('active');
+            quizPage.classList.add('active');
+            loadQuestion();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function loadQuestion() {
+            document.getElementById('qnum').textContent = currentQuestion + 1;
+            const qData = questions[currentQuestion];
+            document.getElementById('question').textContent = qData.q;
+
+            const opts = qData.opts;
+            for (let i = 1; i <= 4; i++) {
+                const btn = document.getElementById(`b${i}`);
+                btn.textContent = opts[i - 1].slice(3);
+                btn.setAttribute('data-label', opts[i - 1].slice(0, 2) + ')');
+                btn.classList.remove('selected');
+                btn.onclick = () => selectOption(i - 1);
+            }
+            selectedOption = -1;
+            continueBtn.disabled = true;
+        }
+
+        function selectOption(index) {
+            document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+            document.getElementById(`b${index + 1}`).classList.add('selected');
+            selectedOption = index;
+            continueBtn.disabled = false;
+        }
+
+        continueBtn.addEventListener('click', () => {
+            if (selectedOption !== -1) userAnswers[currentQuestion] = selectedOption;
+            currentQuestion++;
+            if (currentQuestion >= 30) endQuiz();
+            else loadQuestion();
+        });
+
+        submitBtn.addEventListener('click', () => {
+            if (selectedOption !== -1) userAnswers[currentQuestion] = selectedOption;
+            endQuiz();
+        });
+
+        function endQuiz() {
+            clearInterval(timerInterval);
+            let attempted = 0, correctCount = 0;
+            for (let i = 0; i < 30; i++) {
+                if (userAnswers[i] !== null) {
+                    attempted++;
+                    if (userAnswers[i] === questions[i].correct) correctCount++;
+                }
+            }
+            const wrong = 30 - correctCount;
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+            const mins = String(Math.floor(timeTaken / 60)).padStart(2, '0');
+            const secs = String(timeTaken % 60).padStart(2, '0');
+
+            document.getElementById('total').textContent = 30;
+            document.getElementById('att').textContent = attempted;
+            document.getElementById('cor').textContent = correctCount;
+            document.getElementById('wrg').textContent = wrong;
+            document.getElementById('timeRes').textContent = `${mins}:${secs}`;
+
+            quizPage.classList.remove('active');
+            resultPage.classList.add('active');
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            document.getElementById('timer').textContent = `Time: ${mins}:${secs}`;
+        }
+
+        restartBtn.addEventListener('click', () => {
+            resultPage.classList.remove('active');
+            homePage.classList.add('active');
+            clearInterval(timerInterval);
+        });
+    </script>
+</body>
+</html>
